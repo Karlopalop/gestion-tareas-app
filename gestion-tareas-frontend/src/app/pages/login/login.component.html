@@ -1,56 +1,96 @@
-<div class="login-container">
-  <div class="login-card">
-    <h2>📝 Iniciar Sesión</h2>
-    
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      
-      <!-- Campo Username -->
+<div class="auth-container">
+  <div class="auth-background">
+    <div class="auth-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+  </div>
+  
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="logo-icon">📝</div>
+        <h1>TaskFlow</h1>
+      </div>
+      <p class="auth-subtitle">Organiza tu vida, una tarea a la vez</p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Username Field -->
       <div class="form-group">
-        <label for="username">Usuario:</label>
-        <input 
-          type="text" 
-          id="username" 
-          formControlName="username"
-          placeholder="Ingresa tu usuario"
-          class="form-control"
-          [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+        <label for="username" class="form-label">
+          <span class="label-icon">👤</span>
+          Usuario
+        </label>
+        <div class="input-container">
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username"
+            placeholder="Ingresa tu usuario"
+            class="form-input"
+            [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+          <div class="input-icon">🎯</div>
+        </div>
         <div *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           El usuario es requerido
         </div>
       </div>
 
-      <!-- Campo Password -->
+      <!-- Password Field -->
       <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password"
-          placeholder="Ingresa tu contraseña"
-          class="form-control"
-          [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        <label for="password" class="form-label">
+          <span class="label-icon">🔒</span>
+          Contraseña
+        </label>
+        <div class="input-container">
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            placeholder="Ingresa tu contraseña"
+            class="form-input"
+            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <div class="input-icon">🛡️</div>
+        </div>
         <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           La contraseña es requerida
         </div>
       </div>
 
-      <!-- Mensaje de error -->
-      <div *ngIf="errorMessage" class="error-message server-error">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-banner">
+        <span class="error-banner-icon">❌</span>
         {{ errorMessage }}
       </div>
 
-      <!-- Botón de enviar -->
+      <!-- Submit Button -->
       <button 
         type="submit" 
-        class="btn btn-primary"
-        [disabled]="isLoading">
-        {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        class="auth-button"
+        [disabled]="isLoading"
+        [class.loading]="isLoading">
+        <span class="button-content">
+          <span class="button-icon" *ngIf="!isLoading">🚀</span>
+          <span class="button-spinner" *ngIf="isLoading"></span>
+          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        </span>
       </button>
     </form>
 
-    <!-- Enlace a registro -->
-    <div class="register-link">
-      <p>¿No tienes cuenta? <a (click)="goToRegister()">Regístrate aquí</a></p>
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>¿No tienes cuenta? 
+        <a (click)="goToRegister()" class="auth-link">
+          Regístrate aquí
+          <span class="link-arrow">→</span>
+        </a>
+      </p>
     </div>
   </div>
 </div>

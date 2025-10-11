@@ -150,7 +150,8 @@
     <!-- Resumen de filtros -->
     <div class="filtros-resumen">
       <span class="tareas-count">
-        Mostrando {{ tareasFiltradas.length }} de {{ tareas.length }} tareas
+        Mostrando {{ tareasFiltradas.length }} de {{ totalElements }} tareas
+        (Página {{ currentPage + 1 }} de {{ totalPages }})
       </span>
     </div>
   </div>
@@ -236,6 +237,69 @@
         <div class="tarea-footer">
           <small>Creada: {{ tarea.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small>
         </div>
+      </div>
+    </div>
+
+    <!-- ✅ PAGINACIÓN - AGREGADO AL FINAL -->
+    <div class="pagination-container" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Mostrando {{ (currentPage * pageSize) + 1 }} - 
+        {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+        de {{ totalElements }} tareas
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          class="btn-pagination" 
+          (click)="cambiarPagina(0)"
+          [disabled]="currentPage === 0">
+          « Primera
+        </button>
+        
+        <button 
+          class="btn-pagination" 
+          (click)="cambiarPagina(currentPage - 1)"
+          [disabled]="currentPage === 0">
+          ‹ Anterior
+        </button>
+
+        <span class="pagination-pages">
+          <button 
+            *ngFor="let page of paginas" 
+            class="btn-page" 
+            [class.active]="page === currentPage"
+            (click)="cambiarPagina(page)">
+            {{ page + 1 }}
+          </button>
+        </span>
+
+        <button 
+          class="btn-pagination" 
+          (click)="cambiarPagina(currentPage + 1)"
+          [disabled]="currentPage >= totalPages - 1">
+          Siguiente ›
+        </button>
+        
+        <button 
+          class="btn-pagination" 
+          (click)="cambiarPagina(totalPages - 1)"
+          [disabled]="currentPage >= totalPages - 1">
+          Última »
+        </button>
+      </div>
+
+      <div class="page-size-selector">
+        <label for="pageSize">Tareas por página:</label>
+        <select 
+          id="pageSize" 
+          [(ngModel)]="pageSize" 
+          (change)="cambiarTamanoPagina(pageSize)"
+          class="form-select">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
       </div>
     </div>
   </div>

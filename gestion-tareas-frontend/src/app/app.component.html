@@ -1,16 +1,35 @@
-<!-- Barra de navegación -->
+<!-- Navbar Moderna -->
 <nav *ngIf="mostrarNavbar()" class="navbar">
   <div class="nav-container">
-    <h2>📝 Gestor de Tareas</h2>
+    <!-- Logo y Nombre -->
+    <div class="nav-brand">
+      <div class="logo">📝</div>
+      <h1>TaskFlow</h1>
+    </div>
+
+    <!-- Navegación -->
     <div class="nav-links">
-      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/tareas" routerLinkActive="active">Mis Tareas</a>
-      <button (click)="logout()">Cerrar Sesión</button>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a routerLink="/tareas" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">✅</span>
+        <span class="nav-text">Mis Tareas</span>
+      </a>
+    </div>
+
+    <!-- User Menu -->
+    <div class="nav-user">
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-text">Cerrar Sesión</span>
+      </button>
     </div>
   </div>
 </nav>
 
-<!-- Contenedor principal -->
-<div class="main-container">
+<!-- Contenido Principal -->
+<main class="main-content">
   <router-outlet></router-outlet>
-</div>
+</main>

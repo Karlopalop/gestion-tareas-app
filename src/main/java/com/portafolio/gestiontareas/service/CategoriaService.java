@@ -3,7 +3,10 @@ package com.portafolio.gestiontareas.service;
 import com.portafolio.gestiontareas.entity.Categoria;
 import com.portafolio.gestiontareas.repository.CategoriaRepository;
 import com.portafolio.gestiontareas.dto.CategoriaDTO;
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,7 +32,13 @@ public class CategoriaService {
         return categoriaRepository.save(categoria);
     }
 
-    // ✅ CAMBIA: Devuelve DTOs en lugar de Entities
+    // ✅ NUEVO: Obtener todas las categorías con paginación
+    public Page<CategoriaDTO> obtenerTodasCategorias(Pageable pageable) {
+        return categoriaRepository.findAll(pageable)
+                .map(this::convertirADTO);
+    }
+
+    // ✅ Mantener para compatibilidad
     public List<CategoriaDTO> obtenerTodasCategorias() {
         return categoriaRepository.findAll()
                 .stream()
@@ -54,14 +63,14 @@ public class CategoriaService {
                     categoria.setColor(categoriaActualizada.getColor());
                     return categoriaRepository.save(categoria);
                 })
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Categoría", id));
     }
 
     public void eliminarCategoria(Long id) {
         if (categoriaRepository.existsById(id)) {
             categoriaRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Categoría no encontrada");
+            throw new EntityNotFoundException("Categoría", id);
         }
     }
 

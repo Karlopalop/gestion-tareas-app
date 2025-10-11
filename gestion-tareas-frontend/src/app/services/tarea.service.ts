@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Tarea, Prioridad } from '../models/tarea.model'; // Quita Categoria de aquí
-import { Categoria } from '../models/categoria.model'; // Añade esta línea
+import { Tarea, Prioridad } from '../models/tarea.model';
+import { Categoria } from '../models/categoria.model';
 import { Usuario, LoginRequest } from '../models/usuario.model';
 
 @Injectable({
@@ -31,13 +31,27 @@ export class TareaService {
     return this.http.post<Categoria>(`${this.apiUrl}/categorias`, categoria);
   }
 
-  // ========== TAREAS ==========
-  obtenerTareas(): Observable<Tarea[]> {
-    return this.http.get<Tarea[]>(`${this.apiUrl}/tareas`);
+  // ========== TAREAS CON PAGINACIÓN ==========
+  obtenerTareas(page: number = 0, size: number = 10, sort: string = 'id'): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    return this.http.get<any>(`${this.apiUrl}/tareas`, { params });
   }
 
-  obtenerTareasPorUsuario(usuarioId: number): Observable<Tarea[]> {
-    return this.http.get<Tarea[]>(`${this.apiUrl}/tareas/usuario/${usuarioId}`);
+  obtenerTareasPorUsuario(usuarioId: number, page: number = 0, size: number = 10): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<any>(`${this.apiUrl}/tareas/usuario/${usuarioId}`, { params });
+  }
+
+  // Método original para compatibilidad
+  obtenerTodasTareas(): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(`${this.apiUrl}/tareas`);
   }
 
   crearTarea(tarea: Tarea): Observable<Tarea> {
@@ -54,5 +68,14 @@ export class TareaService {
 
   eliminarTarea(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/tareas/${id}`);
+  }
+
+  // Nuevos métodos útiles
+  obtenerTareasPendientesPorUsuario(usuarioId: number): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(`${this.apiUrl}/tareas/usuario/${usuarioId}/pendientes`);
+  }
+
+  obtenerTareasCompletadasPorUsuario(usuarioId: number): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(`${this.apiUrl}/tareas/usuario/${usuarioId}/completadas`);
   }
 }

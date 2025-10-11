@@ -5,7 +5,12 @@ import com.portafolio.gestiontareas.dto.UsuarioDTO;
 import com.portafolio.gestiontareas.entity.Usuario;
 import com.portafolio.gestiontareas.security.JwtUtil;
 import com.portafolio.gestiontareas.service.UsuarioService;
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +26,7 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @Autowired
-    private JwtUtil jwtUtil;  // ← INYECTAR JwtUtil
+    private JwtUtil jwtUtil;
 
     // Login de usuario CON JWT
     @PostMapping("/login")
@@ -55,20 +60,31 @@ public class UsuarioController {
         }
     }
 
-    // Obtener todos los usuarios
+    // Obtener todos los usuarios CON PAGINACIÓN
     @GetMapping
-    public List<UsuarioDTO> obtenerTodosUsuarios() {
-        return usuarioService.obtenerTodosUsuarios().stream()
-                .map(usuario -> new UsuarioDTO(usuario.getId(), usuario.getUsername(), usuario.getEmail()))
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<UsuarioDTO>> obtenerTodosUsuarios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<Usuario> usuariosPage = usuarioService.obtenerTodosUsuarios(pageable);
+        Page<UsuarioDTO> usuariosDTOPage = usuariosPage.map(usuario ->
+                new UsuarioDTO(usuario.getId(), usuario.getUsername(), usuario.getEmail()));
+        return ResponseEntity.ok(usuariosDTOPage);
     }
 
     // Obtener usuario por ID
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioDTO> obtenerUsuarioPorId(@PathVariable Long id) {
-        return usuarioService.obtenerUsuarioPorId(id)
-                .map(usuario -> ResponseEntity.ok(new UsuarioDTO(usuario.getId(), usuario.getUsername(), usuario.getEmail())))
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Usuario usuario = usuarioService.obtenerUsuarioPorId(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Usuario", id));
+            UsuarioDTO usuarioDTO = new UsuarioDTO(usuario.getId(), usuario.getUsername(), usuario.getEmail());
+            return ResponseEntity.ok(usuarioDTO);
+        } catch (EntityNotFoundException e) {
+            throw e;
+        }
     }
 
     // Actualizar usuario
@@ -82,8 +98,8 @@ public class UsuarioController {
                     usuarioActualizado.getEmail()
             );
             return ResponseEntity.ok(usuarioDTO);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -93,8 +109,8 @@ public class UsuarioController {
         try {
             usuarioService.eliminarUsuario(id);
             return ResponseEntity.ok().body("{\"message\": \"Usuario eliminado correctamente\"}");
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 }

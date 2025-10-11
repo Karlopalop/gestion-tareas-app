@@ -3,7 +3,12 @@ package com.portafolio.gestiontareas.controller;
 import com.portafolio.gestiontareas.entity.Categoria;
 import com.portafolio.gestiontareas.service.CategoriaService;
 import com.portafolio.gestiontareas.dto.CategoriaDTO;
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +22,7 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
-    // Crear nueva categoría (sigue usando Entity para crear)
+    // Crear nueva categoría
     @PostMapping
     public ResponseEntity<Categoria> crearCategoria(@RequestBody Categoria categoria) {
         try {
@@ -28,28 +33,38 @@ public class CategoriaController {
         }
     }
 
-    // ✅ CAMBIA: Devuelve DTOs
+    // Obtener todas las categorías CON PAGINACIÓN
     @GetMapping
-    public List<CategoriaDTO> obtenerTodasCategorias() {
-        return categoriaService.obtenerTodasCategorias();
+    public ResponseEntity<Page<CategoriaDTO>> obtenerTodasCategorias(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<CategoriaDTO> categoriasPage = categoriaService.obtenerTodasCategorias(pageable);
+        return ResponseEntity.ok(categoriasPage);
     }
 
-    // ✅ CAMBIA: Devuelve DTO
+    // Obtener categoría por ID
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaDTO> obtenerCategoriaPorId(@PathVariable Long id) {
-        return categoriaService.obtenerCategoriaDTOPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            CategoriaDTO categoriaDTO = categoriaService.obtenerCategoriaDTOPorId(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Categoría", id));
+            return ResponseEntity.ok(categoriaDTO);
+        } catch (EntityNotFoundException e) {
+            throw e;
+        }
     }
 
-    // Actualizar categoría (sigue usando Entity para actualizar)
+    // Actualizar categoría
     @PutMapping("/{id}")
     public ResponseEntity<Categoria> actualizarCategoria(@PathVariable Long id, @RequestBody Categoria categoria) {
         try {
             Categoria categoriaActualizada = categoriaService.actualizarCategoria(id, categoria);
             return ResponseEntity.ok(categoriaActualizada);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -59,12 +74,12 @@ public class CategoriaController {
         try {
             categoriaService.eliminarCategoria(id);
             return ResponseEntity.ok().body("{\"message\": \"Categoría eliminada correctamente\"}");
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
-    // ✅ CAMBIA: Devuelve DTOs
+    // Buscar categorías por nombre
     @GetMapping("/buscar")
     public List<CategoriaDTO> buscarCategoriasPorNombre(@RequestParam String nombre) {
         return categoriaService.buscarCategoriasPorNombre(nombre);

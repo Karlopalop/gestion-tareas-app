@@ -8,27 +8,19 @@ export class AuthInterceptor implements HttpInterceptor {
 
   constructor(private authService: AuthService) {}
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Obtener el token del servicio de autenticación
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Obtener el token
     const token = this.authService.getToken();
-    
-    console.log('🔐 Interceptor ejecutándose');
-    console.log('📨 Request URL:', request.url);
-    console.log('🔑 Token disponible:', token ? 'SÍ' : 'NO');
-    
-    // Si hay token, clonar la request y agregar el header Authorization
+
+    // Clonar la request y agregar el header de autorización si existe token
     if (token) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+      const authReq = request.clone({
+        headers: request.headers.set('Authorization', `Bearer ${token}`)
       });
-      console.log('✅ Header Authorization agregado');
-    } else {
-      console.log('❌ No hay token - Request sin autorización');
+      return next.handle(authReq);
     }
 
-    // Continuar con la request modificada
+    // Si no hay token, enviar la request original
     return next.handle(request);
   }
 }

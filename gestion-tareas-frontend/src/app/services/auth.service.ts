@@ -59,4 +59,9 @@ export class AuthService {
   getCurrentUser(): string | null {
     return this.currentUserSubject.value;
   }
+
+  // ✅ NUEVO MÉTODO: Para el AuthGuard (alias de isLoggedIn)
+  isAuthenticated(): boolean {
+    return this.isLoggedIn();
+  }
 }

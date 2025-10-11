@@ -1,8 +1,11 @@
 package com.portafolio.gestiontareas.service;
 
 import com.portafolio.gestiontareas.entity.Tarea;
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import com.portafolio.gestiontareas.repository.TareaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,12 +17,17 @@ public class TareaService {
     @Autowired
     private TareaRepository tareaRepository;
 
+    // ✅ NUEVO: Obtener todas las tareas con paginación
+    public Page<Tarea> obtenerTodasTareas(Pageable pageable) {
+        return tareaRepository.findAll(pageable);
+    }
+
     // Crear nueva tarea
     public Tarea crearTarea(Tarea tarea) {
         return tareaRepository.save(tarea);
     }
 
-    // Obtener todas las tareas
+    // Obtener todas las tareas (sin paginación - para compatibilidad)
     public List<Tarea> obtenerTodasTareas() {
         return tareaRepository.findAll();
     }
@@ -46,7 +54,6 @@ public class TareaService {
 
     // Obtener tareas por categoría
     public List<Tarea> obtenerTareasPorCategoria(Long categoriaId) {
-        // ✅ CORREGIDO: Ahora busca por el ID de la categoría a través del objeto Categoria
         return tareaRepository.findAll().stream()
                 .filter(tarea -> tarea.getCategoria() != null && tarea.getCategoria().getId().equals(categoriaId))
                 .toList();
@@ -69,10 +76,10 @@ public class TareaService {
                     tarea.setFechaVencimiento(tareaActualizada.getFechaVencimiento());
                     tarea.setPrioridad(tareaActualizada.getPrioridad());
                     tarea.setUsuarioId(tareaActualizada.getUsuarioId());
-                    tarea.setCategoria(tareaActualizada.getCategoria()); // ✅ CORREGIDO
+                    tarea.setCategoria(tareaActualizada.getCategoria());
                     return tareaRepository.save(tarea);
                 })
-                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
     // Marcar tarea como completada
@@ -82,7 +89,7 @@ public class TareaService {
                     tarea.setCompletada(true);
                     return tareaRepository.save(tarea);
                 })
-                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
     // Marcar tarea como pendiente
@@ -92,7 +99,7 @@ public class TareaService {
                     tarea.setCompletada(false);
                     return tareaRepository.save(tarea);
                 })
-                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
     // Eliminar tarea
@@ -100,7 +107,7 @@ public class TareaService {
         if (tareaRepository.existsById(id)) {
             tareaRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Tarea no encontrada");
+            throw new EntityNotFoundException("Tarea", id);
         }
     }
 
@@ -118,14 +125,14 @@ public class TareaService {
                 .toList();
     }
 
-    // Buscar tareas por título (nuevo método útil)
+    // Buscar tareas por título
     public List<Tarea> buscarTareasPorTitulo(String titulo) {
         return tareaRepository.findAll().stream()
                 .filter(tarea -> tarea.getTitulo().toLowerCase().contains(titulo.toLowerCase()))
                 .toList();
     }
 
-    // Obtener tareas próximas a vencer (nuevo método útil)
+    // Obtener tareas próximas a vencer
     public List<Tarea> obtenerTareasProximasAVencer(Long usuarioId) {
         return tareaRepository.findByUsuarioId(usuarioId).stream()
                 .filter(tarea -> tarea.getFechaVencimiento() != null && !tarea.isCompletada())

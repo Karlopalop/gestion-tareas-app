@@ -1,94 +1,149 @@
-<div class="registro-container">
-  <div class="registro-card">
-    <h2>📝 Crear Cuenta</h2>
-    
-    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="registro-form">
-      
-      <!-- Campo Username -->
+<div class="auth-container">
+  <div class="auth-background">
+    <div class="auth-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+  </div>
+  
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="logo-icon">📝</div>
+        <h1>TaskFlow</h1>
+      </div>
+      <p class="auth-subtitle">Comienza a organizar tu vida</p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Username Field -->
       <div class="form-group">
-        <label for="username">Usuario:</label>
-        <input 
-          type="text" 
-          id="username" 
-          formControlName="username"
-          placeholder="Elige un nombre de usuario"
-          class="form-control"
-          [class.error]="registroForm.get('username')?.invalid && registroForm.get('username')?.touched">
+        <label for="username" class="form-label">
+          <span class="label-icon">👤</span>
+          Usuario
+        </label>
+        <div class="input-container">
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username"
+            placeholder="Elige un nombre de usuario"
+            class="form-input"
+            [class.error]="registroForm.get('username')?.invalid && registroForm.get('username')?.touched">
+          <div class="input-icon">🎯</div>
+        </div>
         <div *ngIf="registroForm.get('username')?.invalid && registroForm.get('username')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           <div *ngIf="registroForm.get('username')?.errors?.['required']">El usuario es requerido</div>
           <div *ngIf="registroForm.get('username')?.errors?.['minlength']">Mínimo 3 caracteres</div>
         </div>
       </div>
 
-      <!-- Campo Email -->
+      <!-- Email Field -->
       <div class="form-group">
-        <label for="email">Email:</label>
-        <input 
-          type="email" 
-          id="email" 
-          formControlName="email"
-          placeholder="tu@email.com"
-          class="form-control"
-          [class.error]="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
+        <label for="email" class="form-label">
+          <span class="label-icon">📧</span>
+          Email
+        </label>
+        <div class="input-container">
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email"
+            placeholder="tu@email.com"
+            class="form-input"
+            [class.error]="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
+          <div class="input-icon">✉️</div>
+        </div>
         <div *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           <div *ngIf="registroForm.get('email')?.errors?.['required']">El email es requerido</div>
           <div *ngIf="registroForm.get('email')?.errors?.['email']">Formato de email inválido</div>
         </div>
       </div>
 
-      <!-- Campo Password -->
+      <!-- Password Field -->
       <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password"
-          placeholder="Mínimo 6 caracteres"
-          class="form-control"
-          [class.error]="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
+        <label for="password" class="form-label">
+          <span class="label-icon">🔒</span>
+          Contraseña
+        </label>
+        <div class="input-container">
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+            class="form-input"
+            [class.error]="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
+          <div class="input-icon">🛡️</div>
+        </div>
         <div *ngIf="registroForm.get('password')?.invalid && registroForm.get('password')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           <div *ngIf="registroForm.get('password')?.errors?.['required']">La contraseña es requerida</div>
           <div *ngIf="registroForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</div>
         </div>
       </div>
 
-      <!-- Campo Confirmar Password -->
+      <!-- Confirm Password Field -->
       <div class="form-group">
-        <label for="confirmPassword">Confirmar Contraseña:</label>
-        <input 
-          type="password" 
-          id="confirmPassword" 
-          formControlName="confirmPassword"
-          placeholder="Repite tu contraseña"
-          class="form-control"
-          [class.error]="registroForm.get('confirmPassword')?.invalid && registroForm.get('confirmPassword')?.touched">
+        <label for="confirmPassword" class="form-label">
+          <span class="label-icon">🔐</span>
+          Confirmar Contraseña
+        </label>
+        <div class="input-container">
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            formControlName="confirmPassword"
+            placeholder="Repite tu contraseña"
+            class="form-input"
+            [class.error]="registroForm.get('confirmPassword')?.invalid && registroForm.get('confirmPassword')?.touched">
+          <div class="input-icon">✅</div>
+        </div>
         <div *ngIf="registroForm.get('confirmPassword')?.invalid && registroForm.get('confirmPassword')?.touched" class="error-message">
+          <span class="error-icon">⚠️</span>
           <div *ngIf="registroForm.get('confirmPassword')?.errors?.['required']">Confirma tu contraseña</div>
           <div *ngIf="registroForm.get('confirmPassword')?.errors?.['passwordsMismatch']">Las contraseñas no coinciden</div>
         </div>
       </div>
 
-      <!-- Mensajes de error y éxito -->
-      <div *ngIf="errorMessage" class="error-message server-error">
+      <!-- Messages -->
+      <div *ngIf="errorMessage" class="error-banner">
+        <span class="error-banner-icon">❌</span>
         {{ errorMessage }}
       </div>
 
-      <div *ngIf="successMessage" class="success-message">
+      <div *ngIf="successMessage" class="success-banner">
+        <span class="success-banner-icon">🎉</span>
         {{ successMessage }}
       </div>
 
-      <!-- Botón de enviar -->
+      <!-- Submit Button -->
       <button 
         type="submit" 
-        class="btn btn-primary"
-        [disabled]="isLoading">
-        {{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}
+        class="auth-button"
+        [disabled]="isLoading"
+        [class.loading]="isLoading">
+        <span class="button-content">
+          <span class="button-icon" *ngIf="!isLoading">✨</span>
+          <span class="button-spinner" *ngIf="isLoading"></span>
+          {{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}
+        </span>
       </button>
     </form>
 
-    <!-- Enlace a login -->
-    <div class="login-link">
-      <p>¿Ya tienes cuenta? <a (click)="goToLogin()">Inicia sesión aquí</a></p>
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>¿Ya tienes cuenta? 
+        <a (click)="goToLogin()" class="auth-link">
+          Inicia sesión aquí
+          <span class="link-arrow">→</span>
+        </a>
+      </p>
     </div>
   </div>
 </div>

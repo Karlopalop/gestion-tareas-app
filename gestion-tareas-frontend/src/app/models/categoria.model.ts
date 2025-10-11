@@ -7,7 +7,6 @@ export interface Categoria {
   usuarioId?: number;
 }
 
-// Opcional: Enum para colores predefinidos
 export enum ColorCategoria {
   ROJO = '#ff4444',
   AZUL = '#4444ff',
@@ -20,7 +19,6 @@ export enum ColorCategoria {
   GRIS = '#888888'
 }
 
-// Opcional: Enum para tipos de categoría
 export enum TipoCategoria {
   PERSONAL = 'PERSONAL',
   TRABAJO = 'TRABAJO',

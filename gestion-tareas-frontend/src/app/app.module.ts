@@ -10,8 +10,10 @@ import { RegistroComponent } from './pages/registro/registro.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { TareasListComponent } from './pages/tareas-list/tareas-list.component';
 
-// Importar el interceptor
+// Importar interceptors
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { ErrorInterceptor } from './interceptors/error.interceptor';
+import { AuthGuard } from './guards/auth.guard';
 
 @NgModule({
   declarations: [
@@ -29,12 +31,18 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     ReactiveFormsModule
   ],
   providers: [
-    // Registrar nuestro interceptor
+    // Registrar nuestros interceptors
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
+      multi: true
+    },
+    AuthGuard
   ],
   bootstrap: [AppComponent]
 })

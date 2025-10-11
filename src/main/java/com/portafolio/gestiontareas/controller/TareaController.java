@@ -1,9 +1,14 @@
 package com.portafolio.gestiontareas.controller;
 
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import com.portafolio.gestiontareas.dto.TareaDTO;
 import com.portafolio.gestiontareas.entity.Tarea;
 import com.portafolio.gestiontareas.service.TareaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,12 +35,17 @@ public class TareaController {
         }
     }
 
-    // Obtener todas las tareas
+    // Obtener todas las tareas CON PAGINACIÓN
     @GetMapping
-    public List<TareaDTO> obtenerTodasTareas() {
-        return tareaService.obtenerTodasTareas().stream()
-                .map(this::convertirATareaDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<TareaDTO>> obtenerTodasTareas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<Tarea> tareasPage = tareaService.obtenerTodasTareas(pageable);
+        Page<TareaDTO> tareasDTOPage = tareasPage.map(this::convertirATareaDTO);
+        return ResponseEntity.ok(tareasDTOPage);
     }
 
     // Obtener tareas por usuario
@@ -49,10 +59,14 @@ public class TareaController {
     // Obtener tarea por ID
     @GetMapping("/{id}")
     public ResponseEntity<TareaDTO> obtenerTareaPorId(@PathVariable Long id) {
-        return tareaService.obtenerTareaPorId(id)
-                .map(this::convertirATareaDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Tarea tarea = tareaService.obtenerTareaPorId(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
+            TareaDTO tareaDTO = convertirATareaDTO(tarea);
+            return ResponseEntity.ok(tareaDTO);
+        } catch (EntityNotFoundException e) {
+            throw e; // Será manejado por el GlobalExceptionHandler
+        }
     }
 
     // Actualizar tarea
@@ -62,8 +76,8 @@ public class TareaController {
             Tarea tareaActualizada = tareaService.actualizarTarea(id, tarea);
             TareaDTO tareaDTO = convertirATareaDTO(tareaActualizada);
             return ResponseEntity.ok(tareaDTO);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -74,8 +88,8 @@ public class TareaController {
             Tarea tarea = tareaService.marcarComoCompletada(id);
             TareaDTO tareaDTO = convertirATareaDTO(tarea);
             return ResponseEntity.ok(tareaDTO);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -86,8 +100,8 @@ public class TareaController {
             Tarea tarea = tareaService.marcarComoPendiente(id);
             TareaDTO tareaDTO = convertirATareaDTO(tarea);
             return ResponseEntity.ok(tareaDTO);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -97,8 +111,8 @@ public class TareaController {
         try {
             tareaService.eliminarTarea(id);
             return ResponseEntity.ok().body("{\"message\": \"Tarea eliminada correctamente\"}");
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (EntityNotFoundException e) {
+            throw e;
         }
     }
 
@@ -118,7 +132,7 @@ public class TareaController {
                 .collect(Collectors.toList());
     }
 
-    // Método auxiliar para convertir Tarea a TareaDTO - ✅ CORREGIDO
+    // Método auxiliar para convertir Tarea a TareaDTO
     private TareaDTO convertirATareaDTO(Tarea tarea) {
         TareaDTO dto = new TareaDTO();
         dto.setId(tarea.getId());
@@ -130,7 +144,6 @@ public class TareaController {
         dto.setPrioridad(tarea.getPrioridad());
         dto.setUsuarioId(tarea.getUsuarioId());
 
-        // ✅ CORREGIDO: Ahora obtenemos el ID de la categoría desde el objeto Categoria
         if (tarea.getCategoria() != null) {
             dto.setCategoriaId(tarea.getCategoria().getId());
             dto.setCategoriaNombre(tarea.getCategoria().getNombre());

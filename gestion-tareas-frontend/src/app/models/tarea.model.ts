@@ -1,19 +1,20 @@
+import { Categoria } from './categoria.model';
+
 export interface Tarea {
   id: number;
   titulo: string;
-  descripcion: string;
+  descripcion?: string;
   completada: boolean;
   fechaCreacion: string;
-  fechaVencimiento: string;
+  fechaVencimiento?: string;
   prioridad: Prioridad;
   usuarioId: number;
-  categoriaId?: number;
-  categoriaNombre?: string;
+  categoriaId?: number;        // Solo el ID de la categoría
+  categoria?: Categoria;       // Objeto categoria completo (opcional)
 }
 
 export enum Prioridad {
-  BAJA = 'BAJA',
-  MEDIA = 'MEDIA',
-  ALTA = 'ALTA'
+  ALTA = 'ALTA',
+  MEDIA = 'MEDIA', 
+  BAJA = 'BAJA'
 }
-

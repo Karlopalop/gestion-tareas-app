@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; // ← CAMBIAR por AuthService
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +15,7 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService, // ← CAMBIAR por AuthService
+    private authService: AuthService,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -33,12 +33,10 @@ export class LoginComponent implements OnInit {
 
       const { username, password } = this.loginForm.value;
 
-      // ✅ USAR el nuevo AuthService
       this.authService.login(username, password).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           
-          // Guardar el token recibido
           if (response.token) {
             this.authService.setToken(response.token);
             this.router.navigate(['/dashboard']);
@@ -53,7 +51,6 @@ export class LoginComponent implements OnInit {
         }
       });
     } else {
-      // Marcar todos los campos como touched para mostrar errores
       Object.keys(this.loginForm.controls).forEach(key => {
         this.loginForm.get(key)?.markAsTouched();
       });

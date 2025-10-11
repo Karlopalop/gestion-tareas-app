@@ -2,7 +2,10 @@ package com.portafolio.gestiontareas.service;
 
 import com.portafolio.gestiontareas.entity.Usuario;
 import com.portafolio.gestiontareas.repository.UsuarioRepository;
+import com.portafolio.gestiontareas.Exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.portafolio.gestiontareas.security.JwtUtil;
 
@@ -17,6 +20,11 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    // ✅ NUEVO: Obtener todos los usuarios con paginación
+    public Page<Usuario> obtenerTodosUsuarios(Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
+    }
 
     // Crear un nuevo usuario
     public Usuario crearUsuario(Usuario usuario) {
@@ -33,7 +41,7 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    // Obtener todos los usuarios
+    // Obtener todos los usuarios (sin paginación - para compatibilidad)
     public List<Usuario> obtenerTodosUsuarios() {
         return usuarioRepository.findAll();
     }
@@ -57,7 +65,7 @@ public class UsuarioService {
                     usuario.setPassword(usuarioActualizado.getPassword());
                     return usuarioRepository.save(usuario);
                 })
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuario", id));
     }
 
     // Eliminar usuario
@@ -65,7 +73,7 @@ public class UsuarioService {
         if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new EntityNotFoundException("Usuario", id);
         }
     }
 
