@@ -1,0 +1,242 @@
+<div class="tareas-container">
+  <!-- Header -->
+  <div class="tareas-header">
+    <h1>📝 Mis Tareas</h1>
+    <button class="btn btn-primary" (click)="mostrarFormulario()" *ngIf="!showForm">
+      ➕ Nueva Tarea
+    </button>
+    <button class="btn btn-secondary" (click)="ocultarFormulario()" *ngIf="showForm">
+      ✕ Cancelar
+    </button>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Formulario de tarea -->
+  <div *ngIf="showForm" class="tarea-form-container">
+    <form [formGroup]="tareaForm" (ngSubmit)="onSubmit()" class="tarea-form">
+      <h3>{{ isEditing ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
+      
+      <!-- Campo Título -->
+      <div class="form-group">
+        <label for="titulo">Título *</label>
+        <input 
+          type="text" 
+          id="titulo" 
+          formControlName="titulo"
+          placeholder="¿Qué necesitas hacer?"
+          class="form-control"
+          [class.error]="tareaForm.get('titulo')?.invalid && tareaForm.get('titulo')?.touched">
+        <div *ngIf="tareaForm.get('titulo')?.invalid && tareaForm.get('titulo')?.touched" class="error-message">
+          <div *ngIf="tareaForm.get('titulo')?.errors?.['required']">El título es requerido</div>
+          <div *ngIf="tareaForm.get('titulo')?.errors?.['minlength']">Mínimo 3 caracteres</div>
+        </div>
+      </div>
+
+      <!-- Campo Descripción -->
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea 
+          id="descripcion" 
+          formControlName="descripcion"
+          placeholder="Descripción detallada de la tarea..."
+          class="form-control"
+          rows="3"></textarea>
+      </div>
+
+      <!-- Campos en línea -->
+      <div class="form-row">
+        <!-- Prioridad -->
+        <div class="form-group">
+          <label for="prioridad">Prioridad</label>
+          <select id="prioridad" formControlName="prioridad" class="form-control">
+            <option *ngFor="let prioridad of prioridades" [value]="prioridad">
+              {{ prioridad }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Categoría -->
+        <div class="form-group">
+          <label for="categoriaId">Categoría</label>
+          <select id="categoriaId" formControlName="categoriaId" class="form-control">
+            <option value="">Sin categoría</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.id">
+              {{ categoria.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Fecha Vencimiento -->
+        <div class="form-group">
+          <label for="fechaVencimiento">Fecha Límite</label>
+          <input 
+            type="date" 
+            id="fechaVencimiento" 
+            formControlName="fechaVencimiento"
+            class="form-control">
+        </div>
+      </div>
+
+      <!-- Botones del formulario -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="ocultarFormulario()">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="tareaForm.invalid">
+          {{ isEditing ? 'Actualizar Tarea' : 'Crear Tarea' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filtros y Búsqueda -->
+  <div class="filtros-container" *ngIf="!showForm">
+    <div class="filtros-header">
+      <h3>🔍 Filtros</h3>
+      <button class="btn btn-link" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </div>
+    
+    <div class="filtros-grid">
+      <!-- Búsqueda -->
+      <div class="filtro-group">
+        <label>Buscar</label>
+        <input 
+          type="text" 
+          [(ngModel)]="searchText" 
+          placeholder="Buscar en títulos y descripciones..."
+          class="form-control search-input">
+      </div>
+
+      <!-- Estado -->
+      <div class="filtro-group">
+        <label>Estado</label>
+        <select [(ngModel)]="filtroEstado" class="form-control">
+          <option value="todas">Todas las tareas</option>
+          <option value="pendientes">Solo pendientes</option>
+          <option value="completadas">Solo completadas</option>
+        </select>
+      </div>
+
+      <!-- Categoría -->
+      <div class="filtro-group">
+        <label>Categoría</label>
+        <select [(ngModel)]="filtroCategoria" class="form-control">
+          <option value="todas">Todas las categorías</option>
+          <option *ngFor="let categoria of categorias" [value]="categoria.id">
+            {{ categoria.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Prioridad -->
+      <div class="filtro-group">
+        <label>Prioridad</label>
+        <select [(ngModel)]="filtroPrioridad" class="form-control">
+          <option value="todas">Todas las prioridades</option>
+          <option value="ALTA">Alta</option>
+          <option value="MEDIA">Media</option>
+          <option value="BAJA">Baja</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Resumen de filtros -->
+    <div class="filtros-resumen">
+      <span class="tareas-count">
+        Mostrando {{ tareasFiltradas.length }} de {{ tareas.length }} tareas
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading">
+    <p>Cargando tareas...</p>
+  </div>
+
+  <!-- Lista de tareas -->
+  <div *ngIf="!isLoading && !showForm" class="tareas-list-container">
+    <!-- Estado vacío -->
+    <div *ngIf="tareasFiltradas.length === 0" class="empty-state">
+      <div class="empty-icon">📝</div>
+      <h3>No hay tareas</h3>
+      <p *ngIf="tareas.length === 0">¡Comienza creando tu primera tarea!</p>
+      <p *ngIf="tareas.length > 0">No hay tareas que coincidan con los filtros aplicados</p>
+      <button class="btn btn-primary" (click)="mostrarFormulario()">
+        ➕ Crear Primera Tarea
+      </button>
+    </div>
+
+    <!-- Lista de tareas -->
+    <div *ngIf="tareasFiltradas.length > 0" class="tareas-grid">
+      <div *ngFor="let tarea of tareasFiltradas" class="tarea-card" [class.completed]="tarea.completada">
+        
+        <!-- Header de la tarjeta -->
+        <div class="tarea-header">
+          <div class="tarea-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="tarea.completada"
+              (change)="toggleCompletada(tarea)"
+              class="checkbox">
+          </div>
+          
+          <div class="tarea-title">
+            <h4 [class.completed]="tarea.completada">{{ tarea.titulo }}</h4>
+          </div>
+
+          <div class="tarea-actions">
+            <button class="btn-icon" (click)="mostrarFormulario(tarea)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-icon btn-danger" (click)="eliminarTarea(tarea.id)" title="Eliminar">
+              🗑️
+            </button>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="tarea-description" *ngIf="tarea.descripcion">
+          <p>{{ tarea.descripcion }}</p>
+        </div>
+
+        <!-- Metadatos -->
+        <div class="tarea-meta">
+          <!-- Prioridad -->
+          <span class="meta-tag priority" [class]="'priority-' + tarea.prioridad.toLowerCase()">
+            🚨 {{ tarea.prioridad }}
+          </span>
+
+          <!-- Categoría -->
+          <span 
+            class="meta-tag category" 
+            [style.background-color]="getColorCategoria(tarea.categoriaId)"
+            [style.color]="'white'">
+            🏷️ {{ getNombreCategoria(tarea.categoriaId) }}
+          </span>
+
+          <!-- Fecha -->
+          <span class="meta-tag date" *ngIf="tarea.fechaVencimiento">
+            📅 {{ tarea.fechaVencimiento | date:'dd/MM/yyyy' }}
+          </span>
+
+          <!-- Estado -->
+          <span class="meta-tag status" [class.completed]="tarea.completada">
+            {{ tarea.completada ? '✅ Completada' : '⏳ Pendiente' }}
+          </span>
+        </div>
+
+        <!-- Fecha de creación -->
+        <div class="tarea-footer">
+          <small>Creada: {{ tarea.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

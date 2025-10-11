@@ -1,0 +1,16 @@
+<!-- Barra de navegación -->
+<nav *ngIf="mostrarNavbar()" class="navbar">
+  <div class="nav-container">
+    <h2>📝 Gestor de Tareas</h2>
+    <div class="nav-links">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/tareas" routerLinkActive="active">Mis Tareas</a>
+      <button (click)="logout()">Cerrar Sesión</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Contenedor principal -->
+<div class="main-container">
+  <router-outlet></router-outlet>
+</div>
