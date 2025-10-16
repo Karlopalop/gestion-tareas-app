@@ -17,74 +17,84 @@ public class TareaService {
     @Autowired
     private TareaRepository tareaRepository;
 
-    // ✅ NUEVO: Obtener todas las tareas con paginación
-    public Page<Tarea> obtenerTodasTareas(Pageable pageable) {
-        return tareaRepository.findAll(pageable);
+    // ✅ MODIFICADO: Obtener todas las tareas del usuario con paginación
+    public Page<Tarea> obtenerTodasTareasPorUsuario(Long usuarioId, Pageable pageable) {
+        return tareaRepository.findByUsuarioId(usuarioId, pageable);
     }
 
-    // Crear nueva tarea
+    // ✅ MODIFICADO: Obtener todas las tareas del usuario (sin paginación)
+    public List<Tarea> obtenerTodasTareasPorUsuario(Long usuarioId) {
+        return tareaRepository.findByUsuarioId(usuarioId);
+    }
+
+    // ✅ ELIMINADO: Método que devuelve todas las tareas sin filtrar
+    // public Page<Tarea> obtenerTodasTareas(Pageable pageable) {
+    //     return tareaRepository.findAll(pageable);
+    // }
+
+    // ✅ ELIMINADO: Método que devuelve todas las tareas sin filtrar
+    // public List<Tarea> obtenerTodasTareas() {
+    //     return tareaRepository.findAll();
+    // }
+
+    // ✅ MODIFICADO: Crear tarea - ahora asigna automáticamente el usuario
     public Tarea crearTarea(Tarea tarea) {
+        // Validar que la tarea tenga un usuario asignado
+        if (tarea.getUsuario() == null) {
+            throw new IllegalArgumentException("La tarea debe tener un usuario asignado");
+        }
         return tareaRepository.save(tarea);
     }
 
-    // Obtener todas las tareas (sin paginación - para compatibilidad)
-    public List<Tarea> obtenerTodasTareas() {
-        return tareaRepository.findAll();
+    // ✅ MODIFICADO: Obtener tarea por ID y usuario (para seguridad)
+    public Optional<Tarea> obtenerTareaPorIdYUsuario(Long id, Long usuarioId) {
+        return tareaRepository.findByIdAndUsuarioId(id, usuarioId);
     }
 
-    // Obtener tarea por ID
+    // ✅ MANTENIDO: Obtener tarea por ID (solo para uso interno)
     public Optional<Tarea> obtenerTareaPorId(Long id) {
         return tareaRepository.findById(id);
     }
 
-    // Obtener tareas por usuario
+    // ✅ MODIFICADO: Obtener tareas por usuario
     public List<Tarea> obtenerTareasPorUsuario(Long usuarioId) {
         return tareaRepository.findByUsuarioId(usuarioId);
     }
 
-    // Obtener tareas pendientes por usuario
+    // ✅ MODIFICADO: Obtener tareas pendientes por usuario
     public List<Tarea> obtenerTareasPendientesPorUsuario(Long usuarioId) {
         return tareaRepository.findByUsuarioIdAndCompletada(usuarioId, false);
     }
 
-    // Obtener tareas completadas por usuario
+    // ✅ MODIFICADO: Obtener tareas completadas por usuario
     public List<Tarea> obtenerTareasCompletadasPorUsuario(Long usuarioId) {
         return tareaRepository.findByUsuarioIdAndCompletada(usuarioId, true);
     }
 
-    // Obtener tareas por categoría
-    public List<Tarea> obtenerTareasPorCategoria(Long categoriaId) {
-        return tareaRepository.findAll().stream()
-                .filter(tarea -> tarea.getCategoria() != null && tarea.getCategoria().getId().equals(categoriaId))
-                .toList();
-    }
-
-    // Obtener tareas por usuario y categoría
+    // ✅ MODIFICADO: Obtener tareas por usuario y categoría
     public List<Tarea> obtenerTareasPorUsuarioYCategoria(Long usuarioId, Long categoriaId) {
-        return tareaRepository.findByUsuarioId(usuarioId).stream()
-                .filter(tarea -> tarea.getCategoria() != null && tarea.getCategoria().getId().equals(categoriaId))
-                .toList();
+        return tareaRepository.findByUsuarioIdAndCategoriaId(usuarioId, categoriaId);
     }
 
-    // Actualizar tarea
-    public Tarea actualizarTarea(Long id, Tarea tareaActualizada) {
-        return tareaRepository.findById(id)
+    // ✅ MODIFICADO: Actualizar tarea con verificación de usuario
+    public Tarea actualizarTarea(Long id, Tarea tareaActualizada, Long usuarioId) {
+        return tareaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .map(tarea -> {
                     tarea.setTitulo(tareaActualizada.getTitulo());
                     tarea.setDescripcion(tareaActualizada.getDescripcion());
                     tarea.setCompletada(tareaActualizada.isCompletada());
                     tarea.setFechaVencimiento(tareaActualizada.getFechaVencimiento());
                     tarea.setPrioridad(tareaActualizada.getPrioridad());
-                    tarea.setUsuarioId(tareaActualizada.getUsuarioId());
                     tarea.setCategoria(tareaActualizada.getCategoria());
+                    // No permitimos cambiar el usuario de la tarea
                     return tareaRepository.save(tarea);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
-    // Marcar tarea como completada
-    public Tarea marcarComoCompletada(Long id) {
-        return tareaRepository.findById(id)
+    // ✅ MODIFICADO: Marcar tarea como completada con verificación de usuario
+    public Tarea marcarComoCompletada(Long id, Long usuarioId) {
+        return tareaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .map(tarea -> {
                     tarea.setCompletada(true);
                     return tareaRepository.save(tarea);
@@ -92,9 +102,9 @@ public class TareaService {
                 .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
-    // Marcar tarea como pendiente
-    public Tarea marcarComoPendiente(Long id) {
-        return tareaRepository.findById(id)
+    // ✅ MODIFICADO: Marcar tarea como pendiente con verificación de usuario
+    public Tarea marcarComoPendiente(Long id, Long usuarioId) {
+        return tareaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .map(tarea -> {
                     tarea.setCompletada(false);
                     return tareaRepository.save(tarea);
@@ -102,41 +112,30 @@ public class TareaService {
                 .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
     }
 
-    // Eliminar tarea
-    public void eliminarTarea(Long id) {
-        if (tareaRepository.existsById(id)) {
-            tareaRepository.deleteById(id);
-        } else {
-            throw new EntityNotFoundException("Tarea", id);
-        }
+    // ✅ MODIFICADO: Eliminar tarea con verificación de usuario
+    public void eliminarTarea(Long id, Long usuarioId) {
+        Tarea tarea = tareaRepository.findByIdAndUsuarioId(id, usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Tarea", id));
+        tareaRepository.delete(tarea);
     }
 
-    // Contar tareas pendientes por usuario
+    // ✅ MODIFICADO: Contar tareas pendientes por usuario
     public long contarTareasPendientesPorUsuario(Long usuarioId) {
-        return tareaRepository.findByUsuarioId(usuarioId).stream()
-                .filter(tarea -> !tarea.isCompletada())
-                .count();
+        return tareaRepository.countByUsuarioIdAndCompletadaFalse(usuarioId);
     }
 
-    // Obtener tareas por prioridad y usuario
+    // ✅ MODIFICADO: Obtener tareas por prioridad y usuario
     public List<Tarea> obtenerTareasPorPrioridadYUsuario(Long usuarioId, Tarea.Prioridad prioridad) {
-        return tareaRepository.findByUsuarioId(usuarioId).stream()
-                .filter(tarea -> tarea.getPrioridad() == prioridad)
-                .toList();
+        return tareaRepository.findByUsuarioIdAndPrioridad(usuarioId, prioridad);
     }
 
-    // Buscar tareas por título
-    public List<Tarea> buscarTareasPorTitulo(String titulo) {
-        return tareaRepository.findAll().stream()
-                .filter(tarea -> tarea.getTitulo().toLowerCase().contains(titulo.toLowerCase()))
-                .toList();
+    // ✅ MODIFICADO: Buscar tareas por título y usuario
+    public List<Tarea> buscarTareasPorTituloYUsuario(Long usuarioId, String titulo) {
+        return tareaRepository.findByUsuarioIdAndTituloContaining(usuarioId, titulo);
     }
 
-    // Obtener tareas próximas a vencer
+    // ✅ MODIFICADO: Obtener tareas próximas a vencer por usuario
     public List<Tarea> obtenerTareasProximasAVencer(Long usuarioId) {
-        return tareaRepository.findByUsuarioId(usuarioId).stream()
-                .filter(tarea -> tarea.getFechaVencimiento() != null && !tarea.isCompletada())
-                .sorted((t1, t2) -> t1.getFechaVencimiento().compareTo(t2.getFechaVencimiento()))
-                .toList();
+        return tareaRepository.findTareasProximasAVencerByUsuario(usuarioId);
     }
 }

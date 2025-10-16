@@ -14,8 +14,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -28,7 +29,7 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Login de usuario CON JWT
+    // ✅ CORREGIDO: Login de usuario que devuelve token + datos del usuario
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         boolean credencialesValidas = usuarioService.verificarCredenciales(
@@ -37,8 +38,27 @@ public class UsuarioController {
         );
 
         if (credencialesValidas) {
-            String token = jwtUtil.generateToken(loginRequest.getUsername());
-            return ResponseEntity.ok().body("{\"token\": \"" + token + "\", \"message\": \"Login exitoso\"}");
+            // ✅ OBTENER EL USUARIO COMPLETO
+            Optional<Usuario> usuarioOpt = usuarioService.obtenerUsuarioPorUsername(loginRequest.getUsername());
+
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                String token = jwtUtil.generateToken(loginRequest.getUsername());
+
+                // ✅ CREAR RESPUESTA CON TOKEN Y DATOS DEL USUARIO
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("message", "Login exitoso");
+                response.put("usuario", new UsuarioDTO(
+                        usuario.getId(),
+                        usuario.getUsername(),
+                        usuario.getEmail()
+                ));
+
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body("{\"error\": \"Usuario no encontrado\"}");
+            }
         } else {
             return ResponseEntity.badRequest().body("{\"error\": \"Credenciales inválidas\"}");
         }

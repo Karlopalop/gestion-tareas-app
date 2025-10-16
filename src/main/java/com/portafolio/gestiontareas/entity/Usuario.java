@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -30,9 +31,9 @@ public class Usuario {
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
-    // ✅ CORREGIDO: Relación con tareas
-    @OneToMany(mappedBy = "usuarioId")
-    private List<Tarea> tareas;
+    // ✅ CORREGIDO: Relación correcta con Tarea - mappedBy debe ser "usuario"
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Tarea> tareas = new ArrayList<>();
 
     // Constructores
     public Usuario() {
@@ -61,4 +62,10 @@ public class Usuario {
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
     public List<Tarea> getTareas() { return tareas; }
     public void setTareas(List<Tarea> tareas) { this.tareas = tareas; }
+
+    // Método helper para agregar tarea
+    public void addTarea(Tarea tarea) {
+        tareas.add(tarea);
+        tarea.setUsuario(this);
+    }
 }

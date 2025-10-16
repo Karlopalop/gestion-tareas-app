@@ -2,8 +2,13 @@
   <!-- Header -->
   <div class="dashboard-header">
     <div class="header-content">
-      <h1 class="dashboard-title">📊 Dashboard</h1>
-      <p class="dashboard-subtitle">Resumen de tu productividad</p>
+      <h1 class="dashboard-title">Dashboard</h1>  
+      <p class="dashboard-subtitle" *ngIf="usuarioLogueado">
+        Resumen de productividad de <strong>{{ usuarioLogueado }}</strong>
+      </p>
+      <p class="dashboard-subtitle" *ngIf="!usuarioLogueado">
+        Resumen de tu productividad
+      </p>
     </div>
     <button class="refresh-btn" (click)="recargar()" [disabled]="isLoading">
       <span class="refresh-icon" [class.spinning]="isLoading">🔄</span>
@@ -11,20 +16,31 @@
     </button>
   </div>
 
+  <!-- Mensaje de Bienvenida -->
+  <div *ngIf="!isLoading && usuarioLogueado" class="welcome-banner">
+    <div class="welcome-content">
+      <span class="welcome-icon">👋</span>
+      <div class="welcome-text">
+        <h3>{{ mensajeBienvenida }}</h3>
+      </div>
+    </div>
+  </div>
+
   <!-- Error Message -->
   <div *ngIf="errorMessage" class="error-banner">
     <span class="error-icon">⚠️</span>
     {{ errorMessage }}
+    <button class="retry-btn" (click)="recargar()">Reintentar</button>
   </div>
 
   <!-- Loading -->
   <div *ngIf="isLoading" class="loading-state">
     <div class="loading-spinner"></div>
-    <p>Cargando dashboard...</p>
+    <p>Cargando tu dashboard personalizado...</p>
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!isLoading" class="dashboard-content">
+  <div *ngIf="!isLoading && !errorMessage" class="dashboard-content">
     
     <!-- Statistics Cards -->
     <div class="stats-grid">
@@ -81,7 +97,7 @@
     </div>
 
     <!-- Progress Section -->
-    <div class="progress-section">
+    <div class="progress-section" *ngIf="hayTareas">
       <div class="section-header">
         <h2 class="section-title">📈 Progreso General</h2>
         <span class="progress-percentage">{{ getPorcentajeCompletadas() }}%</span>
@@ -102,8 +118,21 @@
       </div>
     </div>
 
+    <!-- Sin Tareas State -->
+    <div *ngIf="!hayTareas" class="empty-dashboard">
+      <div class="empty-content">
+        <div class="empty-icon">📊</div>
+        <h2>¡Comienza a ser productivo!</h2>
+        <p>Aún no tienes tareas. Crea tu primera tarea para ver tu progreso aquí.</p>
+        <a routerLink="/tareas" class="primary-button">
+          <span class="button-icon">➕</span>
+          Crear Mi Primera Tarea
+        </a>
+      </div>
+    </div>
+
     <!-- Recent Tasks & Quick Actions -->
-    <div class="actions-grid">
+    <div *ngIf="hayTareas" class="actions-grid">
       <!-- Recent Tasks -->
       <div class="recent-tasks">
         <div class="section-header">
@@ -114,20 +143,18 @@
           </a>
         </div>
         
-        <div *ngIf="tareasRecientes.length === 0" class="empty-state">
+        <div *ngIf="!hayTareasRecientes" class="empty-state">
           <div class="empty-icon">📭</div>
           <h3>No hay tareas recientes</h3>
-          <p>Crea tu primera tarea para comenzar</p>
-          <a routerLink="/tareas" class="action-button">
-            <span class="button-icon">➕</span>
-            Crear Tarea
-          </a>
+          <p>Las tareas que crees aparecerán aquí</p>
         </div>
 
-        <div *ngIf="tareasRecientes.length > 0" class="tasks-list">
+        <div *ngIf="hayTareasRecientes" class="tasks-list">
           <div *ngFor="let tarea of tareasRecientes" class="task-item" [class.completed]="tarea.completada">
             <div class="task-checkbox">
-              <div class="checkbox" [class.checked]="tarea.completada"></div>
+              <div class="checkbox" [class.checked]="tarea.completada">
+                <span *ngIf="tarea.completada" class="check-icon">✓</span>
+              </div>
             </div>
             <div class="task-content">
               <div class="task-header">
@@ -139,9 +166,17 @@
               <div class="task-meta">
                 <span class="task-date">
                   <span class="meta-icon">📅</span>
-                  {{ tarea.fechaVencimiento || 'Sin fecha' }}
+                  {{ tarea.fechaVencimiento ? (tarea.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin fecha' }}
                 </span>
-                <span class="task-status" [class.completed]="tarea.completada">
+                <!-- ✅ CORREGIDO: Usar getNombreCategoria(tarea) en lugar de getNombreCategoria(tarea.categoriaId) -->
+                <span class="task-category" [style.color]="getColorCategoria(tarea)">
+                  <span class="category-dot" [style.background-color]="getColorCategoria(tarea)"></span>
+                  {{ getNombreCategoria(tarea) }}
+                </span>
+              </div>
+              <!-- ✅ NUEVO: Estado de la tarea -->
+              <div class="task-status">
+                <span class="status-badge" [class.completed]="tarea.completada">
                   {{ tarea.completada ? '✅ Completada' : '⏳ Pendiente' }}
                 </span>
               </div>
@@ -179,6 +214,30 @@
               <p>Actualizar datos</p>
             </div>
             <span class="action-arrow">↻</span>
+          </div>
+
+          <!-- ✅ NUEVO: Acción para crear categoría -->
+          <a routerLink="/categorias" class="action-item categories" *ngIf="categorias.length === 0">
+            <div class="action-icon">🏷️</div>
+            <div class="action-content">
+              <h3>Crear Categorías</h3>
+              <p>Organiza tus tareas</p>
+            </div>
+            <span class="action-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- ✅ NUEVO: Resumen de categorías -->
+        <div class="categories-summary" *ngIf="categorias.length > 0">
+          <h3 class="summary-title">🏷️ Tus Categorías</h3>
+          <div class="categories-list">
+            <div *ngFor="let categoria of categorias.slice(0, 3)" class="category-item">
+              <span class="category-color" [style.background-color]="categoria.color"></span>
+              <span class="category-name">{{ categoria.nombre }}</span>
+            </div>
+            <div *ngIf="categorias.length > 3" class="category-more">
+              +{{ categorias.length - 3 }} más
+            </div>
           </div>
         </div>
       </div>

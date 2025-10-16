@@ -1,3 +1,4 @@
+// tarea.model.ts
 import { Categoria } from './categoria.model';
 
 export interface Tarea {
@@ -9,8 +10,11 @@ export interface Tarea {
   fechaVencimiento?: string;
   prioridad: Prioridad;
   usuarioId: number;
-  categoriaId?: number;        // Solo el ID de la categoría
-  categoria?: Categoria;       // Objeto categoria completo (opcional)
+  categoriaId?: number;        
+  categoria?: Categoria;
+  
+  // ✅ AÑADIR: Campos que vienen del DTO del backend
+  categoriaNombre?: string;    // Este viene del TareaDTO del backend
 }
 
 export enum Prioridad {

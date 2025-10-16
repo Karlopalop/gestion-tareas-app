@@ -28,10 +28,12 @@ public class Tarea {
     @Enumerated(EnumType.STRING)
     private Prioridad prioridad = Prioridad.MEDIA;
 
-    @Column(name = "usuario_id")
-    private Long usuarioId;
+    // ✅ CORREGIDO: Relación ManyToOne con Usuario
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
-    // ✅ CORREGIDO: Cambiar categoriaId por categoria (objeto)
+    // ✅ CORREGIDO: Relación con Categoria
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
@@ -60,8 +62,13 @@ public class Tarea {
     public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
     public Prioridad getPrioridad() { return prioridad; }
     public void setPrioridad(Prioridad prioridad) { this.prioridad = prioridad; }
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
+
+    // ✅ NUEVO: Método helper para obtener el ID del usuario
+    public Long getUsuarioId() {
+        return this.usuario != null ? this.usuario.getId() : null;
+    }
 }

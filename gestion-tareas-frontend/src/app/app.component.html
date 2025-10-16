@@ -1,19 +1,26 @@
-<!-- Navbar Moderna -->
-<nav *ngIf="mostrarNavbar()" class="navbar">
+<!-- Navbar -->
+<nav class="navbar" *ngIf="isLoggedIn">
   <div class="nav-container">
-    <!-- Logo y Nombre -->
-    <div class="nav-brand">
-      <div class="logo">📝</div>
-      <h1>TaskFlow</h1>
-    </div>
+    <!-- Brand -->
+    <a routerLink="/dashboard" class="nav-brand">
+      <div class="logo">📊</div>
+      <h1>TaskFlow Pro</h1>
+    </a>
 
-    <!-- Navegación -->
+    <!-- Navigation Links -->
     <div class="nav-links">
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">📊</span>
+      <a 
+        routerLink="/dashboard" 
+        routerLinkActive="active" 
+        class="nav-link">
+        <span class="nav-icon">📋</span>
         <span class="nav-text">Dashboard</span>
       </a>
-      <a routerLink="/tareas" routerLinkActive="active" class="nav-link">
+      
+      <a 
+        routerLink="/tareas" 
+        routerLinkActive="active" 
+        class="nav-link">
         <span class="nav-icon">✅</span>
         <span class="nav-text">Mis Tareas</span>
       </a>
@@ -29,7 +36,15 @@
   </div>
 </nav>
 
-<!-- Contenido Principal -->
-<main class="main-content">
+<!-- Main Content -->
+<div class="main-content">
   <router-outlet></router-outlet>
-</main>
+</div>
+
+<!-- Notification Container -->
+<div 
+  *ngIf="notification.show" 
+  class="notification" 
+  [class]="'notification ' + notification.type">
+  {{ notification.message }}
+</div>
